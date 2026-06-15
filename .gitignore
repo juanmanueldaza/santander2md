@@ -1,5 +1,6 @@
 # Datos (archivos de usuario)
 data/
+output/
 
 # Python
 __pycache__/

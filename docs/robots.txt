@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://santander2md.daza.ar/sitemap.xml

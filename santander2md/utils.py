@@ -4,7 +4,6 @@ Utilidades para santander2md.
 
 from __future__ import annotations
 
-import re
 from typing import Optional
 
 
@@ -30,12 +29,26 @@ def parse_monto_argentino(monto_str: Optional[str]) -> Optional[float]:
         sign = -1
         s = s[1:].strip()
 
-    # Remove currency indicators and spaces (order matters: U$S before $)
+    # Remove currency indicators (order matters: U$S before $)
     s = s.replace("U$S", "").replace("usd", "").replace("USD", "")
-    s = s.replace("$", "").replace(" ", "").strip()
+    s = s.replace("$", "").strip()
 
     if not s:
         return None
+
+    # ── Space-as-decimal heuristic ──
+    # In some PDF extractions, the comma is replaced by a space.
+    # "59 64" → 59.64, "0 00" → 0.00
+    # Only apply when there are NO dots or commas at all.
+    if "." not in s and "," not in s and " " in s:
+        # Replace the LAST space with a dot (decimal), keep rest as separator-less
+        parts = s.rsplit(" ", 1)
+        if len(parts) == 2 and parts[0].isdigit() and parts[1].isdigit():
+            s = parts[0] + "." + parts[1]
+        else:
+            s = s.replace(" ", "")
+    else:
+        s = s.replace(" ", "")
 
     # ── Normalize to standard float format ──
 
@@ -54,12 +67,24 @@ def parse_monto_argentino(monto_str: Optional[str]) -> Optional[float]:
             s = s.replace(",", "")
 
     elif "." in s:
-        # Has dots, no commas
+        # Has dots, no commas. Need to determine if dots are thousand
+        # separators or decimal separators (or a mix of both).
         parts = s.split(".")
-        if len(parts) > 2 and len(parts[-1]) > 2:
-            # 1.510.28757 → comma was lost, last 2 digits are cents
-            s = "".join(parts[:-1]) + parts[-1][:-2] + "." + parts[-1][-2:]
-        # else: 1510287.57 → already valid
+        if len(parts) > 1:
+            last = parts[-1]
+            if len(last) > 2:
+                # >2 chars after last dot → comma was lost in extraction,
+                # dots are thousand separators, last 2 chars are cents.
+                # "461.04837" → 461048.37
+                # "1.510.28757" → 1510287.57
+                s = "".join(parts[:-1]) + last[:-2] + "." + last[-2:]
+            elif len(parts) > 2:
+                # Multiple dots, last part ≤2 chars → last dot is decimal,
+                # previous dots are thousand separators.
+                # "100.000.00" → 100000.00
+                s = "".join(parts[:-1]) + "." + last
+            # else: single dot, 1-2 chars after → dot IS decimal, already valid
+            # "1510287.57" → 1510287.57, "363.28" → 363.28
 
     try:
         return sign * float(s)

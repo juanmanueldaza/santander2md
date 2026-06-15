@@ -8,20 +8,22 @@ import argparse
 import sys
 from pathlib import Path
 
-from santander2md.parser import SantanderParser
-from santander2md.exporter import Exporter
+from santander2md._io import _ensure_dir
+from santander2md._version import __version__
+from santander2md.exporter import to_markdown, to_csv, to_json
+from santander2md.parser import SantanderParser, ParseError
 
 _FORMAT_HANDLERS = {
-    ".md":   Exporter.to_markdown,
-    ".csv":  Exporter.to_csv,
-    ".json": Exporter.to_json,
-    "md":    Exporter.to_markdown,
-    "csv":   Exporter.to_csv,
-    "json":  Exporter.to_json,
+    ".md":   to_markdown,
+    ".csv":  to_csv,
+    ".json": to_json,
+    "md":    to_markdown,
+    "csv":   to_csv,
+    "json":  to_json,
 }
 
 
-def cmd_parse(args):
+def cmd_parse(args: argparse.Namespace) -> None:
     """Parse a single extracto."""
     ext = Path(args.output).suffix.lower()
     handler = _FORMAT_HANDLERS.get(ext)
@@ -31,14 +33,20 @@ def cmd_parse(args):
     print(f"Parseando {args.input}...")
     parser = SantanderParser(args.input)
     extracto = parser.parse()
-    handler(extracto, args.output)
+    if ext == ".md":
+        md = handler(extracto)
+        output_path = Path(args.output)
+        _ensure_dir(output_path)
+        output_path.write_text(md, encoding="utf-8")
+    else:
+        handler(extracto, args.output)
     print(f"✓ Guardado en {args.output}")
 
 
-def cmd_batch(args):
+def cmd_batch(args: argparse.Namespace) -> None:
     """Parse multiple extractos from a directory."""
     output_dir = Path(args.output_dir)
-    output_dir.mkdir(parents=True, exist_ok=True)
+    _ensure_dir(output_dir / ".keep")
     pdf_files = sorted(Path(args.input_dir).glob("*.pdf"))
     handler = _FORMAT_HANDLERS.get(args.format)
     if not handler:
@@ -51,20 +59,25 @@ def cmd_batch(args):
             parser = SantanderParser(str(pdf_path))
             extracto = parser.parse()
             output_path = output_dir / f"{pdf_path.stem}.{args.format}"
-            handler(extracto, str(output_path))
+            if args.format == "md":
+                md = handler(extracto)
+                _ensure_dir(output_path)
+                output_path.write_text(md, encoding="utf-8")
+            else:
+                handler(extracto, str(output_path))
             print(f"  ✓ {output_path.name}")
-        except Exception as e:
+        except (ParseError, FileNotFoundError, OSError) as e:
             print(f"  ✗ Error: {e}", file=sys.stderr)
 
     print(f"\n✓ Proceso completado. Resultados en {args.output_dir}")
 
 
-def main():
+def main() -> None:
     parser = argparse.ArgumentParser(
         prog="santander2md",
         description="Parser para extractos de Santander Argentina a Markdown/CSV/JSON",
     )
-    parser.add_argument("--version", action="version", version="santander2md 0.1.0")
+    parser.add_argument("--version", action="version", version=f"santander2md {__version__}")
     sub = parser.add_subparsers(dest="command")
 
     # parse

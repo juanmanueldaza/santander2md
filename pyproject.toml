@@ -1,0 +1,28 @@
+[build-system]
+requires = ["setuptools>=64"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "santander2md"
+description = "Parser para extractos de Santander Argentina a Markdown"
+authors = [{name = "Juan Manuel Daza", email = "juan@daza.ar"}]
+readme = "README.md"
+license = "MIT"
+requires-python = ">=3.10"
+dynamic = ["version"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
+]
+
+[project.scripts]
+santander2md = "santander2md.cli:main"
+
+[tool.setuptools.dynamic]
+version = {attr = "santander2md._version.__version__"}

@@ -4,11 +4,18 @@ santander2md - Parser para extractos de Santander Argentina.
 
 from __future__ import annotations
 
-__version__ = "0.1.0"
+from ._version import __version__  # noqa: F401 — single version source
 __author__ = "Juan Manuel Daza"
 
 from .parser import SantanderParser
 from .models import Extracto, Movimiento
-from .exporter import Exporter
+from .exporter import to_markdown, to_csv, to_json
 
-__all__ = ["SantanderParser", "Extracto", "Movimiento", "Exporter"]
+__all__ = [
+    "SantanderParser",
+    "Extracto",
+    "Movimiento",
+    "to_markdown",
+    "to_csv",
+    "to_json",
+]

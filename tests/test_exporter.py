@@ -1,15 +1,14 @@
 """Tests para exporter.py."""
 
-import tempfile
 import json
-import os
+from pathlib import Path
 
+from santander2md.exporter import to_markdown, to_csv, to_json
 from santander2md.models import Movimiento, Extracto
-from santander2md.exporter import Exporter
 
 
 class TestExporter:
-    def setup_method(self):
+    def setup_method(self) -> None:
         self.mov = Movimiento("01/05/26", "Pago de haberes", credito=1510287.57)
         self.ext = Extracto(
             periodo_inicio="01/05/26",
@@ -22,31 +21,23 @@ class TestExporter:
             movimientos=[self.mov],
         )
 
-    def test_to_markdown(self):
-        md = Exporter.to_markdown(self.ext)
+    def test_to_markdown(self) -> None:
+        md = to_markdown(self.ext)
         assert "JUAN MANUEL DAZA" in md
         assert "01/05/26" in md
         assert "Pago de haberes" in md
 
-    def test_to_csv(self):
-        with tempfile.NamedTemporaryFile(mode="w", suffix=".csv", delete=False) as f:
-            csv_path = f.name
-        try:
-            Exporter.to_csv(self.ext, csv_path)
-            with open(csv_path) as f:
-                content = f.read()
-            assert "fecha" in content
-            assert "01/05/26" in content
-        finally:
-            os.unlink(csv_path)
+    def test_to_csv(self, tmp_path: Path) -> None:
+        csv_path = tmp_path / "test.csv"
+        to_csv(self.ext, str(csv_path))
+        content = csv_path.read_text(encoding="utf-8")
+        assert "fecha" in content
+        assert "01/05/26" in content
+        # Verify mov.monto is used (should be 1510287.57)
+        assert "1510287.57" in content
 
-    def test_to_json(self):
-        with tempfile.NamedTemporaryFile(mode="w", suffix=".json", delete=False) as f:
-            json_path = f.name
-        try:
-            Exporter.to_json(self.ext, json_path)
-            with open(json_path) as f:
-                data = json.load(f)
-            assert data["cliente_nombre"] == "JUAN MANUEL DAZA"
-        finally:
-            os.unlink(json_path)
+    def test_to_json(self, tmp_path: Path) -> None:
+        json_path = tmp_path / "test.json"
+        to_json(self.ext, str(json_path))
+        data = json.loads(json_path.read_text(encoding="utf-8"))
+        assert data["cliente_nombre"] == "JUAN MANUEL DAZA"

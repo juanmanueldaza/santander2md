@@ -1,4 +1,4 @@
-"""Backward-compatible shim for the refactored parsers package."""
+"""parsers package for santander2md."""
 
 from __future__ import annotations
 

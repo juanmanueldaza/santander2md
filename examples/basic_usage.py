@@ -3,10 +3,10 @@ Ejemplo básico de uso de santander2md.
 """
 
 import sys
-from santander2md import SantanderParser, Exporter
+from santander2md import SantanderParser, to_markdown
 
 
-def main():
+def main() -> None:
     if len(sys.argv) < 2:
         print("Uso: python basic_usage.py <ruta_al_pdf>")
         sys.exit(1)
@@ -29,7 +29,7 @@ def main():
     print(f"Movimientos: {extracto.cantidad_movimientos}")
 
     output_path = "reporte.md"
-    Exporter.to_markdown(extracto, output_path)
+    to_markdown(extracto, output_path)
     print(f"\n✓ Reporte guardado en {output_path}")
 
 

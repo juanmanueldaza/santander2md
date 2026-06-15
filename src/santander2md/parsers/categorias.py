@@ -12,7 +12,8 @@ from santander2md.utils import parse_monto_argentino
 def _parse_categorias_gasto(section_text: str) -> list[CategoriaGasto]:
     """Parse the 'Así usaste tu dinero' spending categories."""
     all_lines = [
-        line for line in section_text.split("\n")
+        line
+        for line in section_text.split("\n")
         if line.strip() and not _is_noise(line.strip())
     ]
     result: list[CategoriaGasto] = []
@@ -75,7 +76,10 @@ def _parse_categorias_gasto(section_text: str) -> list[CategoriaGasto]:
         categories: list[str] = []
         for idx in range(len(cat_boundaries)):
             start = cat_boundaries[idx]
-            end = cat_boundaries[idx + 1] if idx + 1 < len(cat_boundaries) else len(line)
+            if idx + 1 < len(cat_boundaries):
+                end = cat_boundaries[idx + 1]
+            else:
+                end = len(line)
             cat_name = line[start:end].strip()
             if cat_name:
                 categories.append(cat_name)

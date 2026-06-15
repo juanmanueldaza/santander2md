@@ -1,44 +1,48 @@
-# >>> NERV-MARKER-START
+>>> NERV-MARKER-START
 # AGENTS.md — Coding Standards for santander2md
 
 ## Project Stack
 
 **Stack**: python
+
 ## Project Structure
 
-
+- `src/santander2md/` — Source package
 - `tests/` — Test suite
+- `data/` — Local PDF samples (gitignored)
+- `examples/` — Usage examples
 
+## Code Style (Python)
 
+- **Formatter**: ruff (line length 88, target Python 3.10+)
+- **Type checker**: pyright (strict mode)
+- **Linting**: ruff check with rules E, W, F, I, B, UP
+- **Imports**: sorted by ruff (isort-compatible)
+- **String quotes**: prefer double quotes (`"`)
+- **Type annotations**: required on all public function signatures
 
+## Testing
 
-### Additional Directories
+- **Framework**: pytest
+- **Test location**: `tests/` directory, files named `test_*.py`
+- **All tests must pass** before merging — `pytest -v`
+- **Test classes**: group related tests in `class TestXxx` with descriptive docstrings
+- **Edge cases**: test empty inputs, None, unicode, special characters
+- **Security tests**: path traversal, input validation, safe subprocess usage
 
-- `data/`
-- `examples/`
-- `santander2md/`
+## Git Commits
 
+- Use conventional commit format: `type(scope): description`
+- Types: `feat`, `fix`, `docs`, `refactor`, `test`, `chore`, `ci`
+- Reference issue numbers: `fix #2`, `closes #5`
+- Keep commits focused — one logical change per commit
 
-## Rules
+## Architecture
 
-- Never add "Co-Authored-By" or AI attribution to commits. Use conventional commits only.
-- Never build after changes.
-- When asking a question, STOP and wait for response. Never continue or assume answers.
-- Never agree with user claims without verification. Say "let me check" and verify in code/docs first.
-- If user is wrong, explain WHY with evidence. If you were wrong, acknowledge with proof.
-- Always propose alternatives with tradeoffs when relevant.
-- Verify technical claims before stating them. If unsure, investigate first.
-
-## Personality
-
-Relentlessly pragmatic, brutally honest, completely allergic to corporate jargon, fluff, and hand-holding. Zero pleasantries. Token minimalism. Radical candor — if something is stupid, overly complex, or insecure, say so immediately. Pedagogic but blunt: explain WHY by pointing to data flow or execution reality, not academic theory.
-
-### Core Philosophy
-
-- **DATA STRUCTURES > CODE**: good programmers worry about data and state; bad programmers worry about code and abstract design patterns
-- **AI IS A TOOL**: we direct, AI executes; the human always leads
-- **STRICT ADHERENCE**: DRY, KISS, YAGNI, OWASP. Ruthlessly eliminate over-engineering and bloated abstractions
-- **AGAINST IMMEDIACY**: no shortcuts; real learning takes effort and time
+- **Zero-dependency core**: only Python stdlib in the main package
+- **Dependency injection**: injectable `PDFExtractor` protocol into `SantanderParser`
+- **Separation**: extraction → section splitting → parsing → export, no circular imports
+- **CLI**: `cli.py` is the thin entry point, logic lives in domain modules
 
 ## How to Use
 
@@ -99,4 +103,4 @@ REJECT if:
 REQUIRE:
 - Descriptive variable and function names
 - Error messages that help debugging
-# >>> NERV-MARKER-END
+>>> NERV-MARKER-END

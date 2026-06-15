@@ -1,11 +1,11 @@
 """Smoke tests for santander2md.parser."""
 
 import subprocess
+from pathlib import Path
 
 import pytest
-from pathlib import Path
-from santander2md.parser import SantanderParser, ParseError
 
+from santander2md.parser import ParseError, SantanderParser
 
 DATA_DIR = Path(__file__).parent.parent / "data"
 
@@ -59,8 +59,9 @@ class TestSantanderParserRealPDF:
         for m in extracto.movimientos[:10]:
             assert m.fecha, f"Movement missing fecha: {m}"
             assert m.descripcion, f"Movement missing descripcion: {m}"
-            assert m.debito is not None or m.credito is not None, \
+            assert m.debito is not None or m.credito is not None, (
                 f"Movement {m.fecha}: {m.descripcion} — no debito or credito"
+            )
 
 
 class TestSantanderParserErrors:

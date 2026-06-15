@@ -22,11 +22,15 @@ def _parse_productos(section_text: str) -> ProductSummary | None:
                 usd_vals = re.findall(r"U\$S\s*([\d\.,\s]+)", next_s)
                 if usd_vals:
                     if len(pesos_vals) >= 2:
-                        result.debito_compras_pesos = parse_monto_argentino(pesos_vals[0])
-                        result.credito_monto_pesos = parse_monto_argentino(pesos_vals[1])
+                        debito = parse_monto_argentino(pesos_vals[0])
+                        credito = parse_monto_argentino(pesos_vals[1])
+                        result.debito_compras_pesos = debito
+                        result.credito_monto_pesos = credito
                     if len(usd_vals) >= 2:
-                        result.debito_compras_dolares = parse_monto_argentino(usd_vals[0])
-                        result.credito_monto_dolares = parse_monto_argentino(usd_vals[1])
+                        debito_usd = parse_monto_argentino(usd_vals[0])
+                        credito_usd = parse_monto_argentino(usd_vals[1])
+                        result.debito_compras_dolares = debito_usd
+                        result.credito_monto_dolares = credito_usd
                     break
             break
 
@@ -39,10 +43,15 @@ def _parse_productos(section_text: str) -> ProductSummary | None:
                 pass
             break
 
-    if all(v is None for v in [
-        result.debito_compras_pesos, result.debito_compras_dolares,
-        result.credito_monto_pesos, result.credito_monto_dolares,
-        result.superclub_puntos,
-    ]):
+    if all(
+        v is None
+        for v in [
+            result.debito_compras_pesos,
+            result.debito_compras_dolares,
+            result.credito_monto_pesos,
+            result.credito_monto_dolares,
+            result.superclub_puntos,
+        ]
+    ):
         return None
     return result

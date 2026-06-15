@@ -3,6 +3,8 @@ Ejemplo básico de uso de santander2md.
 """
 
 import sys
+from pathlib import Path
+
 from santander2md import SantanderParser, to_markdown
 
 
@@ -29,7 +31,8 @@ def main() -> None:
     print(f"Movimientos: {extracto.cantidad_movimientos}")
 
     output_path = "reporte.md"
-    to_markdown(extracto, output_path)
+    md = to_markdown(extracto)
+    Path(output_path).write_text(md, encoding="utf-8")
     print(f"\n✓ Reporte guardado en {output_path}")
 
 

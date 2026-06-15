@@ -32,13 +32,18 @@ from santander2md.parsers.tarjeta_debito import _parse_debito
 class SantanderParser:
     """Parser principal para extractos de Santander Argentina."""
 
-    def __init__(self, pdf_path: str, pdf_extractor: PDFExtractor | None = None) -> None:
+    def __init__(
+        self, pdf_path: str, pdf_extractor: PDFExtractor | None = None
+    ) -> None:
         if not isinstance(pdf_path, str) or not pdf_path.strip():
             raise ValueError("pdf_path debe ser una ruta no vacía")
         if not pdf_path.lower().endswith(".pdf"):
             raise ValueError("pdf_path debe terminar en .pdf")
         self.pdf_path = pdf_path
-        self._extractor = pdf_extractor if pdf_extractor is not None else PopplerPDFExtractor()
+        if pdf_extractor is not None:
+            self._extractor = pdf_extractor
+        else:
+            self._extractor = PopplerPDFExtractor()
 
     def parse(self) -> Extracto:
         path = Path(self.pdf_path)
@@ -83,24 +88,12 @@ class SantanderParser:
             detalle_impositivo=_parse_detalle_impositivo(
                 sections.get("detalle_impositivo", "")
             ),
-            tarjeta_credito=_parse_tarjeta_credito(
-                sections.get("tarjeta_credito", "")
-            ),
-            tarjeta_debito=_parse_debito(
-                sections.get("tarjeta_debito", "")
-            ),
-            pagos=_parse_pagos(
-                sections.get("pagos", "")
-            ),
-            productos=_parse_productos(
-                sections.get("resumen_productos", "")
-            ),
-            plan_v=_parse_plan_v(
-                sections.get("plan_v", "")
-            ),
-            prestamos=_parse_prestamos(
-                sections.get("prestamos", "")
-            ),
+            tarjeta_credito=_parse_tarjeta_credito(sections.get("tarjeta_credito", "")),
+            tarjeta_debito=_parse_debito(sections.get("tarjeta_debito", "")),
+            pagos=_parse_pagos(sections.get("pagos", "")),
+            productos=_parse_productos(sections.get("resumen_productos", "")),
+            plan_v=_parse_plan_v(sections.get("plan_v", "")),
+            prestamos=_parse_prestamos(sections.get("prestamos", "")),
             cuotas_vencer=standalone_cuotas,
         )
 

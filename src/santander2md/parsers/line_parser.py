@@ -3,9 +3,9 @@
 from __future__ import annotations
 
 import re
+from typing import Callable
 
 from santander2md.utils import parse_monto_argentino
-
 
 _DATE_CLEANUP = re.compile(r"^\s*\d{2}/\d{2}/\d{2}\s*")
 _COMP_CLEANUP = re.compile(r"^\s*\d{5,15}\s+")
@@ -20,9 +20,10 @@ def _re_first(text: str, pattern: str) -> str:
 def _accumulate_continuations(
     lines: list[str],
     *,
-    stop_pred: "callable[[str], bool] | None" = None,
+    stop_pred: Callable[[str], bool] | None = None,
 ) -> list[str]:
-    """Join continuation fragments (lines without a dd/mm/yy date) to the preceding line.
+    """Join continuation fragments (lines without a dd/mm/yy date) to the
+    preceding line.
 
     Lines matching *stop_pred* are emitted as separate entries so that end
     markers are not merged into the previous transaction row. Orphan
@@ -81,7 +82,7 @@ class _LineParser:
             return desc, []
 
         tx_amounts = amounts[:-1] if len(amounts) > 1 else []
-        desc = _LineParser.clean_desc(line[:amounts[0].start()])
+        desc = _LineParser.clean_desc(line[: amounts[0].start()])
 
         parsed: list[tuple[str, float]] = []
         for m in tx_amounts:

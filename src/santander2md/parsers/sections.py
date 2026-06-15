@@ -4,7 +4,6 @@ from __future__ import annotations
 
 import re
 
-
 # Ordered by typical position in the PDF, longest patterns first to avoid
 # partial matches (e.g. "Tarjeta Santander" before "Tarjeta de débito").
 _SECTION_HEADER_PATTERNS: list[tuple[str, str]] = [

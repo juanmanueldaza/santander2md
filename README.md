@@ -1,77 +1,104 @@
 # santander2md
 
-Parser para extractos de Santander Argentina que los convierte a Markdown, CSV o JSON.
+Convert Santander Argentina account and credit-card PDF statements to clean Markdown.
 
-## Instalación
+## Installation
+
+**Recommended** (using pipx - installs in isolated environment):
 
 ```bash
-pip install -e .
+pipx install santander2md
 ```
 
-## Uso
-
-### Línea de comandos
+Or with pip (in a virtual environment):
 
 ```bash
-# Parsear un extracto individual
+pip install santander2md
+```
+
+> **Note**: On modern Linux systems (Debian, Ubuntu 23.04+, Fedora), use `pipx` to avoid the "externally-managed-environment" error.
+
+You also need the `pdftotext` binary from Poppler:
+
+```bash
+# Ubuntu/Debian
+sudo apt-get install -y poppler-utils
+
+# macOS
+brew install poppler
+```
+
+## Usage
+
+### Command line
+
+```bash
+# Convert a single PDF to Markdown
 santander2md parse -i extracto.pdf -o reporte.md
 
-# Procesar múltiples extractos
+# Process multiple statements
 santander2md batch -i ./data -o ./output -f md
 ```
 
-### Como librería
+### As a library
 
 ```python
-from santander2md import SantanderParser, Exporter
+from santander2md import SantanderParser, to_markdown
 
-# Parsear
 parser = SantanderParser("extracto.pdf")
 extracto = parser.parse()
-
-# Exportar a Markdown
-md = Exporter.to_markdown(extracto)
+md = to_markdown(extracto)
 print(md)
-
-# Guardar a archivo
-Exporter.to_markdown(extracto, "reporte.md")
-Exporter.to_csv(extracto, "movimientos.csv")
-Exporter.to_json(extracto, "extracto.json")
 ```
 
-## Estructura del Proyecto
+## Output
+
+The tool produces Markdown summaries of:
+
+- Account movements (pesos and dollars)
+- Credit-card summaries and purchases
+- Taxes and withholding details
+- Loans and installment plans
+- Pending installments (`cuotas a vencer`)
+
+## Development
+
+```bash
+# Install system dependency
+sudo apt-get install -y poppler-utils
+
+# Create virtual environment
+python -m venv .venv
+source .venv/bin/activate
+
+# Install with dev dependencies
+pip install -e ".[dev]"
+
+# Run tests
+pytest -v
+
+# Lint and type check
+ruff check .
+ruff format --check .
+pyright
+```
+
+## Project Structure
 
 ```
 santander2md/
-├── santander2md/      # Código fuente
-│   ├── __init__.py
-│   ├── parser.py      # Parser principal
-│   ├── models.py      # Dataclasses
-│   ├── exporter.py    # Exportadores
-│   ├── utils.py       # Utilidades
-│   └── cli.py         # CLI
-├── tests/             # Tests
-├── examples/          # Ejemplos
-├── setup.py          # Instalación
-└── README.md        # Este archivo
+├── src/santander2md/   # Source package
+│   ├── parsers/        # PDF extraction and section parsers
+│   ├── models.py       # Data models
+│   ├── exporter.py     # Markdown exporter
+│   ├── utils.py        # Shared utilities
+│   └── cli.py          # CLI entry point
+├── tests/              # Test suite
+├── examples/           # Usage examples
+├── pyproject.toml      # Project metadata and tool config
+└── README.md           # This file
 ```
 
-## Desarrollo
+## License
 
-```bash
-# Instalar dependencias
-pip install -r requirements.txt
-
-# Ejecutar tests
-pytest tests/ -v
-
-# Formatear código
-ruff format .
-
-# Linting
-ruff check .
-```
-
-## Licencia
-
-MIT
+GPL-2.0

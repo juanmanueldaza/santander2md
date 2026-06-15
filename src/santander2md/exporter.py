@@ -12,14 +12,14 @@ from pathlib import Path
 from santander2md._io import _ensure_dir
 from santander2md.models import (
     CategoriaGasto,
+    DetalleImpositivo,
     Extracto,
     MovimientoDolar,
+    PagoRealizado,
+    PlanVResumen,
+    ProductSummary,
     TarjetaCreditoResumen,
     TarjetaDebitoMovimiento,
-    PagoRealizado,
-    DetalleImpositivo,
-    ProductSummary,
-    PlanVResumen,
 )
 
 
@@ -32,12 +32,13 @@ def _sanitize(text: str) -> str:
 #  Section renderers
 # ═══════════════════════════════════════════════════════════════════════
 
+
 def _render_mermaid_pie(categorias: list[CategoriaGasto]) -> str:
     """Render spending categories as a Mermaid pie chart."""
     if not categorias:
         return ""
     lines = ["```mermaid", "pie showData"]
-    lines.append('    title Así usaste tu dinero')
+    lines.append("    title Así usaste tu dinero")
     for c in categorias:
         # Mermaid pie values must be positive numbers (no commas)
         lines.append(f'    "{c.nombre}" : {c.total:.0f}')
@@ -111,7 +112,11 @@ def _render_credit_card(tc: TarjetaCreditoResumen) -> str:
         for pa in tc.pago_anterior:
             desc = _sanitize(pa.descripcion)
             ars = f"${pa.importe_pesos:,.2f}" if pa.importe_pesos is not None else ""
-            usd = f"U$S {pa.importe_dolares:,.2f}" if pa.importe_dolares is not None else ""
+            usd = (
+                f"U$S {pa.importe_dolares:,.2f}"
+                if pa.importe_dolares is not None
+                else ""
+            )
             md += f"| {pa.fecha} | {desc} | {ars} | {usd} |\n"
         md += "\n"
 
@@ -178,7 +183,8 @@ def _render_tax_detail(detalle: DetalleImpositivo) -> str:
     """Render tax detail section."""
     md = "\n## Detalle Impositivo\n\n"
     if detalle.total_retencion_creditos is not None:
-        md += f"- **Retención por créditos:** ${detalle.total_retencion_creditos:,.2f}\n"
+        total = detalle.total_retencion_creditos
+        md += f"- **Retención por créditos:** ${total:,.2f}\n"
     if detalle.total_retencion_debitos is not None:
         md += f"- **Retención por débitos:** ${detalle.total_retencion_debitos:,.2f}\n"
     if detalle.computable_creditos is not None:
@@ -196,11 +202,13 @@ def _render_products(productos: ProductSummary) -> str:
     if productos.debito_compras_pesos is not None:
         md += f"- **Débito compras (Pesos):** ${productos.debito_compras_pesos:,.2f}\n"
     if productos.debito_compras_dolares is not None:
-        md += f"- **Débito compras (Dólares):** U$S {productos.debito_compras_dolares:,.2f}\n"
+        debito_usd = productos.debito_compras_dolares
+        md += f"- **Débito compras (Dólares):** U$S {debito_usd:,.2f}\n"
     if productos.credito_monto_pesos is not None:
         md += f"- **Crédito monto (Pesos):** ${productos.credito_monto_pesos:,.2f}\n"
     if productos.credito_monto_dolares is not None:
-        md += f"- **Crédito monto (Dólares):** U$S {productos.credito_monto_dolares:,.2f}\n"
+        credito_usd = productos.credito_monto_dolares
+        md += f"- **Crédito monto (Dólares):** U$S {credito_usd:,.2f}\n"
     if productos.superclub_puntos is not None:
         md += f"- **SuperClub+ Puntos:** {productos.superclub_puntos:,}\n"
     return md + "\n"
@@ -253,6 +261,7 @@ def _render_prestamos(prestamos: list) -> str:
 # ═══════════════════════════════════════════════════════════════════════
 #  Main exporters
 # ═══════════════════════════════════════════════════════════════════════
+
 
 def to_markdown(extracto: Extracto) -> str:
     """Genera reporte Markdown completo y lo devuelve como string."""

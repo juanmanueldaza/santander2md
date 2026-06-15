@@ -1,7 +1,8 @@
 """Tests for santander2md.models."""
 
 import pytest
-from santander2md.models import Movimiento, Extracto
+
+from santander2md.models import Extracto, Movimiento
 
 
 class TestMovimiento:
@@ -76,11 +77,13 @@ class TestExtracto:
         )
         assert ext.sueldo_neto == 1500000.0
         from santander2md.exporter import to_markdown
+
         md = to_markdown(ext)
         assert "Sueldo Neto" in md
 
     def test_to_markdown(self):
         from santander2md.exporter import to_markdown
+
         ext = Extracto(
             periodo_inicio="01/05/26",
             periodo_fin="28/05/26",
@@ -115,7 +118,11 @@ class TestPromedioGastoDiario:
     """Acceptance tests for fix-promedio-gasto-diario (AC-1 through AC-8)."""
 
     @staticmethod
-    def _ext(gastos: float = 0.0, inicio: str = "01/05/26", fin: str = "31/05/26") -> Extracto:
+    def _ext(
+        gastos: float = 0.0,
+        inicio: str = "01/05/26",
+        fin: str = "31/05/26",
+    ) -> Extracto:
         movs = [Movimiento("01/05/26", "test", debito=gastos)] if gastos > 0 else []
         return Extracto(
             periodo_inicio=inicio,

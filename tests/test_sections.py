@@ -15,7 +15,9 @@ class TestSplitSections:
         sections = _split_sections(text)
 
         assert set(sections.keys()) == {
-            "movimientos_pesos", "movimientos_dolares", "tarjeta_credito"
+            "movimientos_pesos",
+            "movimientos_dolares",
+            "tarjeta_credito",
         }
         assert "foo" in sections["movimientos_pesos"]
         assert "bar" in sections["movimientos_dolares"]

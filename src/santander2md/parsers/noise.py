@@ -4,7 +4,6 @@ from __future__ import annotations
 
 import re
 
-
 _SKIP_PATTERNS = [
     re.compile(r"Banco Santander.*sociedad anónima", re.I),
     re.compile(r"accionista mayoritario", re.I),

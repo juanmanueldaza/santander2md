@@ -8,7 +8,7 @@ from pathlib import Path
 
 import pytest
 
-from santander2md._version import __version__
+from santander2md import __version__
 
 # Parent of the project root — where data/ lives
 PROJECT_ROOT = Path(__file__).parent.parent
@@ -49,8 +49,10 @@ class TestCLINoCommand:
 class TestCLIParse:
     @pytest.mark.skipif(_first_pdf() is None, reason="No PDF files in data/")
     def test_parse_to_md(self, tmp_path: Path) -> None:
+        pdf = _first_pdf()
+        assert pdf is not None
         output = tmp_path / "out.md"
-        result = _run_cli("parse", "-i", _first_pdf(), "-o", str(output))
+        result = _run_cli("parse", "-i", pdf, "-o", str(output))
         assert result.returncode == 0, f"stderr: {result.stderr}"
         assert output.exists()
         content = output.read_text(encoding="utf-8")
@@ -70,10 +72,18 @@ class TestCLIParse:
 
 
 class TestCLIBatch:
-    @pytest.mark.skipif(not list(DATA_DIR.glob("*.pdf")), reason="No PDF files in data/")
+    @pytest.mark.skipif(
+        not list(DATA_DIR.glob("*.pdf")), reason="No PDF files in data/"
+    )
     def test_batch_directory(self, tmp_path: Path) -> None:
         result = _run_cli(
-            "batch", "-i", str(DATA_DIR), "-o", str(tmp_path), "-f", "md",
+            "batch",
+            "-i",
+            str(DATA_DIR),
+            "-o",
+            str(tmp_path),
+            "-f",
+            "md",
         )
         assert result.returncode == 0, f"stderr: {result.stderr}"
         # At least one output file should exist

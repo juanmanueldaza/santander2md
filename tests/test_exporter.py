@@ -3,8 +3,8 @@
 import json
 from pathlib import Path
 
-from santander2md.exporter import to_markdown, to_csv, to_json
-from santander2md.models import Movimiento, Extracto
+from santander2md.exporter import to_csv, to_json, to_markdown
+from santander2md.models import Extracto, Movimiento
 
 
 class TestExporter:

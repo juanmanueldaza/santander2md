@@ -8,18 +8,18 @@ import argparse
 import sys
 from pathlib import Path
 
+from santander2md import __version__
 from santander2md._io import _ensure_dir
-from santander2md._version import __version__
-from santander2md.exporter import to_markdown, to_csv, to_json
-from santander2md.parser import SantanderParser, ParseError
+from santander2md.exporter import to_csv, to_json, to_markdown
+from santander2md.parser import ParseError, SantanderParser
 
 _FORMAT_HANDLERS = {
-    ".md":   to_markdown,
-    ".csv":  to_csv,
+    ".md": to_markdown,
+    ".csv": to_csv,
     ".json": to_json,
-    "md":    to_markdown,
-    "csv":   to_csv,
-    "json":  to_json,
+    "md": to_markdown,
+    "csv": to_csv,
+    "json": to_json,
 }
 
 
@@ -77,21 +77,30 @@ def main() -> None:
         prog="santander2md",
         description="Parser para extractos de Santander Argentina a Markdown/CSV/JSON",
     )
-    parser.add_argument("--version", action="version", version=f"santander2md {__version__}")
+    parser.add_argument(
+        "--version", action="version", version=f"santander2md {__version__}"
+    )
     sub = parser.add_subparsers(dest="command")
 
     # parse
     p = sub.add_parser("parse", help="Parsea un extracto individual")
     p.add_argument("-i", "--input", required=True, help="PDF de entrada")
-    p.add_argument("-o", "--output", required=True, help="Archivo de salida (.md, .csv, .json)")
+    p.add_argument(
+        "-o", "--output", required=True, help="Archivo de salida (.md, .csv, .json)"
+    )
     p.set_defaults(func=cmd_parse)
 
     # batch
     b = sub.add_parser("batch", help="Parsea múltiples extractos en lote")
     b.add_argument("-i", "--input-dir", required=True, help="Directorio con PDFs")
     b.add_argument("-o", "--output-dir", required=True, help="Directorio de salida")
-    b.add_argument("-f", "--format", choices=["md", "csv", "json"], default="md",
-                   help="Formato de salida (default: md)")
+    b.add_argument(
+        "-f",
+        "--format",
+        choices=["md", "csv", "json"],
+        default="md",
+        help="Formato de salida (default: md)",
+    )
     b.set_defaults(func=cmd_batch)
 
     args = parser.parse_args()

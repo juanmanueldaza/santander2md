@@ -44,21 +44,22 @@ def _parse_pagos(section_text: str) -> list[PagoRealizado]:
         if importe is None:
             continue
 
-        rest = line_s[:m.start()]
+        rest = line_s[: m.start()]
         parts = [p.strip() for p in rest.split("  ") if p.strip()]
         parts = [
-            p for p in parts
-            if date_str not in p and (comp is None or comp not in p)
+            p for p in parts if date_str not in p and (comp is None or comp not in p)
         ]
         servicio = parts[0] if parts else ""
         medio_pago = parts[1] if len(parts) > 1 else None
 
-        result.append(PagoRealizado(
-            fecha=date_str,
-            comprobante=comp,
-            servicio=servicio,
-            medio_pago=medio_pago,
-            importe=importe,
-        ))
+        result.append(
+            PagoRealizado(
+                fecha=date_str,
+                comprobante=comp,
+                servicio=servicio,
+                medio_pago=medio_pago,
+                importe=importe,
+            )
+        )
 
     return result

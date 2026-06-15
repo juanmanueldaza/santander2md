@@ -1,28 +1,55 @@
-[build-system]
-requires = ["setuptools>=64"]
-build-backend = "setuptools.build_meta"
-
 [project]
 name = "santander2md"
-description = "Parser para extractos de Santander Argentina a Markdown"
-authors = [{name = "Juan Manuel Daza", email = "juan@daza.ar"}]
+version = "0.1.0"
+description = "Convert Santander Argentina account and credit-card statements to Markdown"
 readme = "README.md"
-license = "MIT"
+license = { text = "GPL-2.0" }
+authors = [{ name = "Juan Manuel Daza", email = "juan@daza.ar" }]
 requires-python = ">=3.10"
-dynamic = ["version"]
+keywords = ["santander", "argentina", "bank", "statement", "pdf", "markdown", "parser"]
 classifiers = [
     "Development Status :: 3 - Alpha",
+    "Environment :: Console",
     "Intended Audience :: Developers",
+    "Intended Audience :: End Users/Desktop",
+    "License :: OSI Approved :: GNU General Public License v2 (GPLv2)",
+    "Operating System :: OS Independent",
     "Programming Language :: Python :: 3",
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
     "Programming Language :: Python :: 3.13",
     "Programming Language :: Python :: 3.14",
+    "Topic :: Office/Business :: Financial",
+    "Topic :: Text Processing :: Markup :: Markdown",
+    "Topic :: Utilities",
 ]
+dependencies = []
 
 [project.scripts]
 santander2md = "santander2md.cli:main"
 
-[tool.setuptools.dynamic]
-version = {attr = "santander2md._version.__version__"}
+[project.optional-dependencies]
+dev = ["pytest>=9.0", "ruff>=0.9", "pyright>=1.1.408"]
+
+[project.urls]
+Homepage = "https://github.com/juanmanueldaza/santander2md"
+Repository = "https://github.com/juanmanueldaza/santander2md"
+Issues = "https://github.com/juanmanueldaza/santander2md/issues"
+
+[build-system]
+requires = ["hatchling>=1.27"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/santander2md"]
+
+[tool.ruff]
+target-version = "py310"
+line-length = 88
+
+[tool.ruff.lint]
+select = ["E", "W", "F", "I", "B", "UP"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

@@ -1,0 +1,5 @@
+# CODEOWNERS
+# These owners will be automatically requested for review
+# when a pull request is opened that affects the repository.
+
+*       @juanmanueldaza

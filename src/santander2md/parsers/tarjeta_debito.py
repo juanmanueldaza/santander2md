@@ -5,7 +5,7 @@ from __future__ import annotations
 import re
 
 from santander2md.models import TarjetaDebitoMovimiento
-from santander2md.parsers.line_parser import _LineParser, _accumulate_continuations
+from santander2md.parsers.line_parser import _accumulate_continuations, _LineParser
 from santander2md.parsers.noise import _is_noise
 from santander2md.utils import parse_monto_argentino
 
@@ -59,18 +59,20 @@ def _parse_debito(section_text: str) -> list[TarjetaDebitoMovimiento]:
             continue
 
         # Extract establecimiento: everything between date/comprobante and amount
-        rest = line_s[:m.start()].strip()
+        rest = line_s[: m.start()].strip()
         if comp and comp in rest:
             rest = rest.replace(comp, "", 1).strip()
         if date_str and date_str in rest:
             rest = rest.replace(date_str, "", 1).strip()
         establecimiento = rest
 
-        result.append(TarjetaDebitoMovimiento(
-            fecha=date_str,
-            comprobante=comp,
-            establecimiento=establecimiento,
-            importe=importe,
-        ))
+        result.append(
+            TarjetaDebitoMovimiento(
+                fecha=date_str,
+                comprobante=comp,
+                establecimiento=establecimiento,
+                importe=importe,
+            )
+        )
 
     return result

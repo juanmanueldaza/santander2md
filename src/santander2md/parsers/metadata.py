@@ -4,7 +4,6 @@ from __future__ import annotations
 
 import re
 
-from santander2md.parsers.line_parser import _re_first
 from santander2md.utils import parse_monto_argentino
 
 
@@ -14,14 +13,21 @@ def _extract_nombre(text: str) -> str:
     if m:
         name = m.group(1).strip()
         skip = {
-            "CONSUMIDOR FINAL", "AV HIPOLITO", "B1878FNP", "INFINITY GOLD",
-            "BUENOS AIRES", "MOVIMIENTOS", "SANTANDER", "CUENTA", "FECHA",
+            "CONSUMIDOR FINAL",
+            "AV HIPOLITO",
+            "B1878FNP",
+            "INFINITY GOLD",
+            "BUENOS AIRES",
+            "MOVIMIENTOS",
+            "SANTANDER",
+            "CUENTA",
+            "FECHA",
         }
         parts = name.split()
         filtered = [
-            p for p in parts
-            if p not in skip
-            and not re.match(r"^(?:AV|CBU|CUIT|DESDE|HASTA)\b", p)
+            p
+            for p in parts
+            if p not in skip and not re.match(r"^(?:AV|CBU|CUIT|DESDE|HASTA)\b", p)
         ]
         if filtered:
             return " ".join(filtered[:3])

@@ -17,10 +17,14 @@ logger = logging.getLogger(__name__)
 # ── Section end markers (legacy) ───────────────────────────────────────
 
 _SECTION_END = [
-    "Movimientos en dólares", "Movimientos  en dólares",
-    "Caja de Ahorro en dólares", "Resumen de tus productos",
-    "Resumen  de  tus productos", "Tarjeta  Santander",
-    "Tarjeta Santander", "Resumen    de  tus productos",
+    "Movimientos en dólares",
+    "Movimientos  en dólares",
+    "Caja de Ahorro en dólares",
+    "Resumen de tus productos",
+    "Resumen  de  tus productos",
+    "Tarjeta  Santander",
+    "Tarjeta Santander",
+    "Resumen    de  tus productos",
 ]
 
 
@@ -37,11 +41,13 @@ class _SectionExtractor:
 
     @staticmethod
     def _is_table_header(line: str) -> bool:
-        return bool(re.search(
-            r"Fecha.*Comprobante.*(?:Movimiento|Descripción)|"
-            r"FECHA\s+COMPROB\.\s+SUS MOVIMIENTOS",
-            line,
-        ))
+        return bool(
+            re.search(
+                r"Fecha.*Comprobante.*(?:Movimiento|Descripción)|"
+                r"FECHA\s+COMPROB\.\s+SUS MOVIMIENTOS",
+                line,
+            )
+        )
 
     @staticmethod
     def extract(lines: list[str]) -> list[str]:
@@ -55,6 +61,7 @@ class _SectionExtractor:
             start = _SectionExtractor._find_line(lines, r"DETALLE DE MOVIMIENTOS")
         if start < 0:
             from santander2md.parsers.errors import ParseError
+
             raise ParseError("No se encontró 'Movimientos en pesos'")
         end = len(lines)
         for i in range(start + 1, len(lines)):
@@ -76,8 +83,9 @@ class _SectionExtractor:
                 break
         if header < 0:
             from santander2md.parsers.errors import ParseError
+
             raise ParseError("No se encontró la cabecera de la tabla")
-        return section_lines[header + 1:]
+        return section_lines[header + 1 :]
 
 
 def _parse_movimientos(full_text: str) -> list[Movimiento]:

@@ -5,7 +5,7 @@ from __future__ import annotations
 import re
 
 from santander2md.models import MovimientoDolar
-from santander2md.parsers.line_parser import _LineParser, _accumulate_continuations
+from santander2md.parsers.line_parser import _accumulate_continuations, _LineParser
 from santander2md.parsers.noise import _is_noise
 from santander2md.utils import parse_monto_argentino
 
@@ -14,12 +14,15 @@ def _parse_movimientos_dolares(section_text: str) -> list[MovimientoDolar]:
     """Parse the 'Movimientos en dólares' table."""
 
     def _is_end(line: str) -> bool:
-        return any(marker in line for marker in [
-            "Movimientos en pesos",
-            "Caja de Ahorro en dólares",
-            "Resumen de tus productos",
-            "Tarjeta Santander",
-        ])
+        return any(
+            marker in line
+            for marker in [
+                "Movimientos en pesos",
+                "Caja de Ahorro en dólares",
+                "Resumen de tus productos",
+                "Tarjeta Santander",
+            ]
+        )
 
     lines = _accumulate_continuations(section_text.split("\n"), stop_pred=_is_end)
     result: list[MovimientoDolar] = []
@@ -49,7 +52,9 @@ def _parse_movimientos_dolares(section_text: str) -> list[MovimientoDolar]:
         # Last amount is saldo (running balance)
         last_sign = amounts[-1].group(1)
         saldo_val = parse_monto_argentino(amounts[-1].group(2))
-        saldo = -(saldo_val) if last_sign and last_sign.strip() == "-" else saldo_val
+        if saldo_val is None:
+            continue
+        saldo = -saldo_val if last_sign and last_sign.strip() == "-" else saldo_val
 
         # Previous amounts are the transaction
         monto: float = 0.0
@@ -65,16 +70,18 @@ def _parse_movimientos_dolares(section_text: str) -> list[MovimientoDolar]:
 
         # Description
         date_str = _LineParser.extract_date(line_s)
-        desc_raw = _LineParser.clean_desc(line_s[:amounts[0].start()])
+        desc_raw = _LineParser.clean_desc(line_s[: amounts[0].start()])
 
         if not desc_raw or monto == 0.0:
             continue
 
-        result.append(MovimientoDolar(
-            fecha=date_str or "",
-            descripcion=desc_raw,
-            monto=monto,
-            saldo=saldo,
-        ))
+        result.append(
+            MovimientoDolar(
+                fecha=date_str or "",
+                descripcion=desc_raw,
+                monto=monto,
+                saldo=saldo,
+            )
+        )
 
     return result

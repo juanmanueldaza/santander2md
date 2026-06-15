@@ -4,10 +4,8 @@ Utilidades para santander2md.
 
 from __future__ import annotations
 
-from typing import Optional
 
-
-def parse_monto_argentino(monto_str: Optional[str]) -> Optional[float]:
+def parse_monto_argentino(monto_str: str | None) -> float | None:
     """
     Parsea un monto en formato argentino a float.
 
@@ -90,6 +88,3 @@ def parse_monto_argentino(monto_str: Optional[str]) -> Optional[float]:
         return sign * float(s)
     except (ValueError, TypeError):
         return None
-
-
-

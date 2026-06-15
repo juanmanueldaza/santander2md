@@ -35,9 +35,14 @@ def _parse_detalle_impositivo(section_text: str) -> DetalleImpositivo | None:
     if m:
         result.computable_debitos = parse_monto_argentino(m.group(1))
 
-    if all(v is None for v in [
-        result.total_retencion_creditos, result.total_retencion_debitos,
-        result.computable_creditos, result.computable_debitos,
-    ]):
+    if all(
+        v is None
+        for v in [
+            result.total_retencion_creditos,
+            result.total_retencion_debitos,
+            result.computable_creditos,
+            result.computable_debitos,
+        ]
+    ):
         return None
     return result

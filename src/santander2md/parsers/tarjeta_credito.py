@@ -12,7 +12,7 @@ from santander2md.models import (
     TarjetaCreditoResumen,
 )
 from santander2md.parsers.cuotas_vencer import _parse_cuotas_vencer
-from santander2md.parsers.line_parser import _LineParser, _accumulate_continuations
+from santander2md.parsers.line_parser import _accumulate_continuations, _LineParser
 from santander2md.parsers.noise import _is_noise
 from santander2md.utils import parse_monto_argentino
 
@@ -42,9 +42,10 @@ def _parse_tarjeta_credito(section_text: str) -> TarjetaCreditoResumen | None:
                         if val is not None:
                             resumen.pago_minimo = val
                     if usd_matches:
-                        val = parse_monto_argentino(usd_matches[0].group(1))
+                        raw = usd_matches[0].group(1)
+                        val = parse_monto_argentino(raw)
                         if val is not None:
-                            if "." not in usd_matches[0].group(1) and "," not in usd_matches[0].group(1):
+                            if "." not in raw and "," not in raw:
                                 val = val / 100
                             resumen.monto_pagar_dolares = val
                     dates = [m.group(1) for m in date_matches]
@@ -72,10 +73,13 @@ def _parse_tarjeta_credito(section_text: str) -> TarjetaCreditoResumen | None:
                         resumen.tna_dolares = float(m.group(1).replace(",", "."))
                     tem_matches = list(re.finditer(r"Pesos:\s*([\d,]+)\s*%", val_line))
                     if len(tem_matches) > 1:
-                        resumen.tem_pesos = float(tem_matches[1].group(1).replace(",", "."))
-                    dol_matches = list(re.finditer(r"Dólares:\s*([\d,]+)\s*%", val_line))
+                        tem_raw = tem_matches[1].group(1)
+                        resumen.tem_pesos = float(tem_raw.replace(",", "."))
+                    dol_pattern = r"Dólares:\s*([\d,]+)\s*%"
+                    dol_matches = list(re.finditer(dol_pattern, val_line))
                     if len(dol_matches) > 1:
-                        resumen.tem_dolares = float(dol_matches[1].group(1).replace(",", "."))
+                        dol_raw = dol_matches[1].group(1)
+                        resumen.tem_dolares = float(dol_raw.replace(",", "."))
                     break
             break
 
@@ -100,8 +104,12 @@ def _parse_tarjeta_credito(section_text: str) -> TarjetaCreditoResumen | None:
     resumen.impuestos = _parse_impuestos_credito(lines)
     resumen.cuotas_vencer = _parse_cuotas_vencer(section_text)
 
-    if resumen.monto_pagar_pesos is None and resumen.monto_pagar_dolares is None \
-            and not resumen.consumos and not resumen.impuestos:
+    if (
+        resumen.monto_pagar_pesos is None
+        and resumen.monto_pagar_dolares is None
+        and not resumen.consumos
+        and not resumen.impuestos
+    ):
         return None
     return resumen
 
@@ -112,9 +120,7 @@ def _parse_pago_anterior(lines: list[str]) -> list[PagoAnteriorItem]:
     merged = _accumulate_continuations(
         lines,
         stop_pred=lambda s: (
-            s.startswith("Total")
-            or "Consumos del mes" in s
-            or "Consumos totales" in s
+            s.startswith("Total") or "Consumos del mes" in s or "Consumos totales" in s
         ),
     )
     in_section = False
@@ -168,12 +174,14 @@ def _parse_pago_anterior(lines: list[str]) -> list[PagoAnteriorItem]:
         )
         desc = s[desc_start:first_amt].strip()
 
-        result.append(PagoAnteriorItem(
-            fecha=date_str or "",
-            descripcion=desc,
-            importe_pesos=ars,
-            importe_dolares=usd,
-        ))
+        result.append(
+            PagoAnteriorItem(
+                fecha=date_str or "",
+                descripcion=desc,
+                importe_pesos=ars,
+                importe_dolares=usd,
+            )
+        )
 
     return result
 
@@ -230,13 +238,15 @@ def _parse_consumos_credito(lines: list[str]) -> list[TarjetaCreditoMovimiento]:
             first_amount = len(line_s)
         desc = line_s[desc_start:first_amount].strip()
 
-        result.append(TarjetaCreditoMovimiento(
-            fecha=date_str,
-            descripcion=desc,
-            cuota=cuota,
-            importe_pesos=ars,
-            importe_dolares=usd,
-        ))
+        result.append(
+            TarjetaCreditoMovimiento(
+                fecha=date_str,
+                descripcion=desc,
+                cuota=cuota,
+                importe_pesos=ars,
+                importe_dolares=usd,
+            )
+        )
 
     return result
 
@@ -255,14 +265,17 @@ def _parse_impuestos_credito(lines: list[str]) -> list[ImpuestoCredito]:
             in_section = True
         if not in_section:
             continue
-        if "Consumos totales" in line_s or "Cuotas a vencer" in line_s \
-                or "Plan V" in line_s:
+        if (
+            "Consumos totales" in line_s
+            or "Cuotas a vencer" in line_s
+            or "Plan V" in line_s
+        ):
             break
 
         m = re.search(r"\$\s*([\d\.,]+)", line_s)
         if m:
             amount = parse_monto_argentino(m.group(1))
-            desc = line_s[:m.start()].strip()
+            desc = line_s[: m.start()].strip()
             if desc and amount is not None:
                 result.append(ImpuestoCredito(descripcion=desc, importe=amount))
 

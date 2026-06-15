@@ -31,14 +31,19 @@ def _parse_plan_v(section_text: str) -> PlanVResumen | None:
         tna = float(m.group(3).replace(",", ".")) if m.group(3) else None
 
         cftea = None
-        cftea_m = re.search(r"CFTEA[^:]*:\s*([\d,]+)%", flat[m.end():m.end() + 60])
+        cftea_m = re.search(r"CFTEA[^:]*:\s*([\d,]+)%", flat[m.end() : m.end() + 60])
         if cftea_m:
             cftea = float(cftea_m.group(1).replace(",", "."))
 
         if importe is not None:
-            result.opciones.append(PlanVOpcion(
-                cuotas=cuotas, importe=importe, tna=tna, cftea=cftea,
-            ))
+            result.opciones.append(
+                PlanVOpcion(
+                    cuotas=cuotas,
+                    importe=importe,
+                    tna=tna,
+                    cftea=cftea,
+                )
+            )
 
     if result.pago_minimo is None and not result.opciones:
         return None

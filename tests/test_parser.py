@@ -8,24 +8,24 @@ from santander2md.parser import SantanderParser, ParseError
 DATA_DIR = Path(__file__).parent.parent / "data"
 
 
-def _find_first_pdf():
-    """Find the first available PDF in data/ for testing."""
-    if DATA_DIR.exists():
-        for f in sorted(DATA_DIR.glob("*.pdf")):
-            return str(f)
-    return None
+def _list_pdfs():
+    """Return all PDF paths for parametrized testing. Empty if no data."""
+    if not DATA_DIR.exists():
+        return []
+    return sorted(str(p) for p in DATA_DIR.glob("*.pdf"))
+
+
+def _pdf_ids():
+    """Human-readable test IDs from PDF filenames."""
+    if not DATA_DIR.exists():
+        return []
+    return sorted(p.name for p in DATA_DIR.glob("*.pdf"))
 
 
 class TestSantanderParserRealPDF:
-    @pytest.fixture(autouse=True)
-    def _require_pdf(self):
-        path = _find_first_pdf()
-        if path is None:
-            pytest.skip("No PDF test data available")
-        return path
-
-    def test_parse_basic(self, _require_pdf):
-        parser = SantanderParser(_require_pdf)
+    @pytest.mark.parametrize("pdf_path", _list_pdfs(), ids=_pdf_ids())
+    def test_parse_basic(self, pdf_path):
+        parser = SantanderParser(pdf_path)
         extracto = parser.parse()
 
         assert extracto.cliente_nombre
@@ -33,24 +33,28 @@ class TestSantanderParserRealPDF:
         assert extracto.periodo_inicio
         assert extracto.periodo_fin
         assert extracto.saldo_inicial is not None
+        assert extracto.saldo_final is not None
         assert isinstance(extracto.movimientos, list)
         assert len(extracto.movimientos) > 0
 
-    def test_movements_have_data(self, _require_pdf):
-        parser = SantanderParser(_require_pdf)
-        extracto = parser.parse()
-
-        for m in extracto.movimientos[:10]:
-            assert m.fecha
-            assert m.descripcion
-            assert m.debito is not None or m.credito is not None
-
-    def test_totals_non_negative(self, _require_pdf):
-        parser = SantanderParser(_require_pdf)
+    @pytest.mark.parametrize("pdf_path", _list_pdfs(), ids=_pdf_ids())
+    def test_totals_non_negative(self, pdf_path):
+        parser = SantanderParser(pdf_path)
         extracto = parser.parse()
 
         assert extracto.total_ingresos >= 0
         assert extracto.total_gastos >= 0
+
+    @pytest.mark.parametrize("pdf_path", _list_pdfs(), ids=_pdf_ids())
+    def test_movements_valid(self, pdf_path):
+        parser = SantanderParser(pdf_path)
+        extracto = parser.parse()
+
+        for m in extracto.movimientos[:10]:
+            assert m.fecha, f"Movement missing fecha: {m}"
+            assert m.descripcion, f"Movement missing descripcion: {m}"
+            assert m.debito is not None or m.credito is not None, \
+                f"Movement {m.fecha}: {m.descripcion} — no debito or credito"
 
 
 class TestSantanderParserErrors:

@@ -1,31 +1,12 @@
 """
 Modelos de datos para santander2md.
-Usa dataclasses para estructurar la información.
 """
 
-from dataclasses import dataclass, field
+from __future__ import annotations
+
+from dataclasses import dataclass, field, asdict
 from datetime import datetime
-from typing import List, Optional
-
-@dataclass
-class Cliente:
-    """Datos del cliente."""
-    nombre: str
-    cuit: str
-    cbu: str
-    
-    def __str__(self):
-        return f"{self.nombre} (CUIT: {self.cuit})"
-
-
-@dataclass
-class Periodo:
-    """Período del extracto."""
-    inicio: str  # Formato: DD/MM/YY
-    fin: str    # Formato: DD/MM/YY
-    
-    def __str__(self):
-        return f"{self.inicio} al {self.fin}"
+from typing import Any, Optional, List
 
 
 @dataclass
@@ -33,88 +14,81 @@ class Movimiento:
     """Un movimiento bancario (transacción)."""
     fecha: str
     descripcion: str
-    debito: Optional[float] = None   # Monto negativo (gasto)
-    credito: Optional[float] = None  # Monto positivo (ingreso)
-    
+    debito: Optional[float] = None   # Monto debitado (gasto, positivo)
+    credito: Optional[float] = None  # Monto acreditado (ingreso, positivo)
+
+    def __post_init__(self) -> None:
+        if self.debito is None and self.credito is None:
+            raise ValueError("Movimiento debe tener debito o credito")
+
     @property
     def monto(self) -> float:
         """Devuelve el monto absoluto."""
-        if self.debito:
-            return -self.debito
+        if self.debito is not None:
+            return self.debito
         return self.credito or 0.0
-    
-    def __str__(self):
-        tipo = "DÉBITO" if self.debito else "CRÉDITO"
-        monto = self.debito if self.debito else self.credito
-        return f"{self.fecha} | {tipo:>8} | ${monto:>12,.2f} | {self.descripcion}"
 
+    @property
+    def tipo(self) -> str:
+        """Devuelve 'débito' o 'crédito'."""
+        return "débito" if self.debito is not None else "crédito"
 
-@dataclass
-class Saldos:
-    """Saldos inicial y final."""
-    inicial: Optional[float] = None
-    final: Optional[float] = None
-    
-    def __str__(self):
-        return f"Inicial: ${self.inicial:,.2f} | Final: ${self.final:,.2f}"
+    def to_dict(self) -> dict[str, Any]:
+        d = asdict(self)
+        d["monto"] = self.monto
+        d["tipo"] = self.tipo
+        return d
 
 
 @dataclass
 class Extracto:
     """Extracto bancario completo."""
-    periodo: Periodo
-    cliente: Cliente
-    saldos: Saldos
+    periodo_inicio: str
+    periodo_fin: str
+    cliente_nombre: str
+    cliente_cuit: str
+    saldo_inicial: Optional[float] = None
+    saldo_final: Optional[float] = None
     sueldo_neto: Optional[float] = None
     movimientos: List[Movimiento] = field(default_factory=list)
-    
+
     @property
     def total_ingresos(self) -> float:
-        """Suma de todos los créditos (excepto el sueldo)."""
-        return sum(m.credito for m in self.movimientos if m.credito and m.credito > 0)
-    
+        """Suma de créditos (sin contar sueldo)."""
+        return sum(m.credito for m in self.movimientos if m.credito)
+
     @property
     def total_gastos(self) -> float:
-        """Suma de todos los débitos."""
-        return sum(m.debito for m in self.movimientos if m.debito and m.debito > 0)
-    
+        """Suma de débitos."""
+        return sum(m.debito for m in self.movimientos if m.debito)
+
     @property
     def capacidad_ahorro(self) -> float:
         """Ingresos - Gastos."""
         return self.total_ingresos - self.total_gastos
-    
-    def to_markdown(self) -> str:
-        """Convierte el extracto a Markdown."""
-        md = f"""# Extracto Santander - {self.periodo}
 
-## Datos del Cliente
-- **Nombre:** {self.cliente.nombre}
-- **CUIT:** {self.cliente.cuit}
-- **CBU:** {self.cliente.cbu}
+    @property
+    def cantidad_movimientos(self) -> int:
+        return len(self.movimientos)
 
-## Resumen Financiero
-- **Período:** {self.periodo}
-- **Saldo Inicial:** ${self.saldos.inicial:,.2f}
-- **Saldo Final:** ${self.saldos.final:,.2f}
-- **Sueldo Neto:** ${self.sueldo_neto:,.2f}
+    @property
+    def promedio_gasto_diario(self) -> float:
+        if not self.movimientos:
+            return 0.0
 
-## Estadísticas
-- **Total Ingresos:** ${self.total_ingresos:,.2f}
-- **Total Gastos:** ${self.total_gastos:,.2f}
-- **Capacidad de Ahorro:** ${self.capacidad_ahorro:,.2f}
-- **Número de Movimientos:** {len(self.movimientos)}
+        try:
+            inicio = datetime.strptime(self.periodo_inicio, "%d/%m/%y")
+            fin = datetime.strptime(self.periodo_fin, "%d/%m/%y")
+            days = max(abs((fin - inicio).days), 1)
+        except (ValueError, TypeError):
+            days = 30
 
-## Movimientos
+        return self.total_gastos / days
 
-| Fecha | Tipo | Monto | Descripción |
-|-------|-------|-------|-------------|
-"""
-        for mov in self.movimientos[:50]:  # Mostrar solo los primeros 50
-            tipo = "DÉBITO" if mov.debito else "CRÉDITO"
-            monto = mov.debito if mov.debito else mov.credito
-            md += f"| {mov.fecha} | {tipo} | ${monto:,.2f} | {mov.descripcion} |\n"
-        
-        if len(self.movimientos) > 50:
-            md += f"\n*... y {len(self.movimientos) - 50} movimientos más.*\n"
-        
-        return md
+    def to_dict(self) -> dict[str, Any]:
+        d = asdict(self)
+        d["total_ingresos"] = self.total_ingresos
+        d["total_gastos"] = self.total_gastos
+        d["capacidad_ahorro"] = self.capacidad_ahorro
+        d["cantidad_movimientos"] = self.cantidad_movimientos
+        return d

@@ -1,0 +1,3 @@
+# Runtime deps: zero (parser uses pdftotext system binary)
+# Dev deps:
+pytest>=7.0.0

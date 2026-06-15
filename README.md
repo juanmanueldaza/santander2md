@@ -1,28 +1,77 @@
 # santander2md
 
-Herramienta para parsear extractos bancarios de Santander Argentina y convertirlos a Markdown.
+Parser para extractos de Santander Argentina que los convierte a Markdown, CSV o JSON.
 
-## Características
+## Instalación
 
-- Parsea PDFs de extractos de Santander
-- Extrae datos estructurados: ingresos, gastos, saldos, movimientos
-- Genera reportes en Markdown
-- Exporta a CSV/JSON para análisis
-- Calcula capacidad de ahorro
+```bash
+pip install -e .
+```
 
 ## Uso
 
+### Línea de comandos
+
 ```bash
-python santander2md.py --input ~/Downloads/finanzas_analisis/ --output ./output/
+# Parsear un extracto individual
+santander2md parse -i extracto.pdf -o reporte.md
+
+# Procesar múltiples extractos
+santander2md batch -i ./data -o ./output -f md
 ```
 
-## Estructura
+### Como librería
+
+```python
+from santander2md import SantanderParser, Exporter
+
+# Parsear
+parser = SantanderParser("extracto.pdf")
+extracto = parser.parse()
+
+# Exportar a Markdown
+md = Exporter.to_markdown(extracto)
+print(md)
+
+# Guardar a archivo
+Exporter.to_markdown(extracto, "reporte.md")
+Exporter.to_csv(extracto, "movimientos.csv")
+Exporter.to_json(extracto, "extracto.json")
+```
+
+## Estructura del Proyecto
 
 ```
 santander2md/
-├── santander2md.py    # Parser principal
-├── analyzer.py         # Análisis de datos financieros
-├── exporter.py         # Exporta a MD, CSV, JSON
-├── templates/         # Templates de Markdown
-└── output/           # Reportes generados
+├── santander2md/      # Código fuente
+│   ├── __init__.py
+│   ├── parser.py      # Parser principal
+│   ├── models.py      # Dataclasses
+│   ├── exporter.py    # Exportadores
+│   ├── utils.py       # Utilidades
+│   └── cli.py         # CLI
+├── tests/             # Tests
+├── examples/          # Ejemplos
+├── setup.py          # Instalación
+└── README.md        # Este archivo
 ```
+
+## Desarrollo
+
+```bash
+# Instalar dependencias
+pip install -r requirements.txt
+
+# Ejecutar tests
+pytest tests/ -v
+
+# Formatear código
+ruff format .
+
+# Linting
+ruff check .
+```
+
+## Licencia
+
+MIT

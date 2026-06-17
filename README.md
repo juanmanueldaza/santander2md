@@ -101,4 +101,4 @@ santander2md/
 
 ## License
 
-GPL-2.0
+Apache-2.0

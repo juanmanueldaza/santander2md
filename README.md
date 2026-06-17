@@ -1,4 +1,6 @@
 # santander2md
+![PyPI version](https://img.shields.io/pypi/v/santander2md.svg)
+
 
 Convert Santander Argentina account and credit-card PDF statements to clean Markdown.
 

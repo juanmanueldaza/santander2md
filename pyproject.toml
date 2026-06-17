@@ -1,6 +1,6 @@
 [project]
 name = "santander2md"
-version = "0.1.0"
+version = "0.1.1"
 description = "Convert Santander Argentina account and credit-card statements to Markdown"
 readme = "README.md"
 license = { text = "Apache-2.0" }

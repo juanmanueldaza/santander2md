@@ -7,6 +7,7 @@ import re
 from typing import Any
 
 from santander2md.models import Movimiento
+from santander2md.parsers.errors import ParseError
 from santander2md.parsers.line_parser import _LineParser
 from santander2md.parsers.noise import _is_noise
 from santander2md.utils import parse_monto_argentino
@@ -60,8 +61,6 @@ class _SectionExtractor:
         if start < 0:
             start = _SectionExtractor._find_line(lines, r"DETALLE DE MOVIMIENTOS")
         if start < 0:
-            from santander2md.parsers.errors import ParseError
-
             raise ParseError("No se encontró 'Movimientos en pesos'")
         end = len(lines)
         for i in range(start + 1, len(lines)):
@@ -82,8 +81,6 @@ class _SectionExtractor:
                 header = i
                 break
         if header < 0:
-            from santander2md.parsers.errors import ParseError
-
             raise ParseError("No se encontró la cabecera de la tabla")
         return section_lines[header + 1 :]
 

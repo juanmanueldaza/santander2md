@@ -329,7 +329,7 @@ def to_markdown(extracto: Extracto) -> str:
     return md
 
 
-def to_csv(extracto: Extracto, output_path: str) -> None:
+def to_csv(extracto: Extracto, output_path: str | Path) -> None:
     """Exporta movimientos a CSV (fecha, tipo, monto, descripcion)."""
     output = io.StringIO()
     writer = csv.writer(output, quoting=csv.QUOTE_MINIMAL)
@@ -343,7 +343,7 @@ def to_csv(extracto: Extracto, output_path: str) -> None:
     path.write_text(output.getvalue(), encoding="utf-8")
 
 
-def to_json(extracto: Extracto, output_path: str) -> None:
+def to_json(extracto: Extracto, output_path: str | Path) -> None:
     """Exporta el extracto completo a JSON."""
     path = Path(output_path)
     _ensure_dir(path)

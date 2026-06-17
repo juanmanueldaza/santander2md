@@ -5,15 +5,15 @@ from __future__ import annotations
 import re
 
 # Ordered by typical position in the PDF, longest patterns first to avoid
-# partial matches (e.g. "Tarjeta Santander" before "Tarjeta de débito").
+# partial matches (e.g. "Tarjeta de débito" before "Tarjeta Santander").
 _SECTION_HEADER_PATTERNS: list[tuple[str, str]] = [
     ("movimientos_pesos", r"Movimientos\s+en\s+pesos|DETALLE DE MOVIMIENTOS"),
     ("movimientos_dolares", r"Movimientos\s+en\s+dólares"),
     ("detalle_impositivo", r"Detalle impositivo"),
     ("categorias_gasto", r"Así\s+usaste\s+tu\s+dinero"),
     ("resumen_productos", r"Resumen\s+de\s+tus\s+productos"),
-    ("tarjeta_credito", r"Tarjeta\s+Santander"),
     ("tarjeta_debito", r"Tarjeta\s+de\s+débito"),
+    ("tarjeta_credito", r"Tarjeta\s+Santander"),
     ("pagos", r"^\s*Pagos\s+(?:Período|en el período|totales)"),
     ("prestamos", r"^\s*Préstamos\b"),
     ("plan_v", r"Plan\s+V"),

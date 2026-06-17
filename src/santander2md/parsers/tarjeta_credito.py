@@ -67,19 +67,29 @@ def _parse_tarjeta_credito(section_text: str) -> TarjetaCreditoResumen | None:
                         resumen.sucursal = m.group(1)
                     if m := re.search(r"(\d{9,})", val_line):
                         resumen.numero_cuenta = m.group(1)
-                    if m := re.search(r"Pesos:\s*([\d,]+)\s*%", val_line):
-                        resumen.tna_pesos = float(m.group(1).replace(",", "."))
-                    if m := re.search(r"Dólares:\s*([\d,]+)\s*%", val_line):
-                        resumen.tna_dolares = float(m.group(1).replace(",", "."))
-                    tem_matches = list(re.finditer(r"Pesos:\s*([\d,]+)\s*%", val_line))
-                    if len(tem_matches) > 1:
-                        tem_raw = tem_matches[1].group(1)
-                        resumen.tem_pesos = float(tem_raw.replace(",", "."))
-                    dol_pattern = r"Dólares:\s*([\d,]+)\s*%"
-                    dol_matches = list(re.finditer(dol_pattern, val_line))
-                    if len(dol_matches) > 1:
-                        dol_raw = dol_matches[1].group(1)
-                        resumen.tem_dolares = float(dol_raw.replace(",", "."))
+
+                    # Single finditer per pattern — index 0 = TNA, index 1 = TEM
+                    pesos_pat = r"Pesos:\s*([\d,]+)\s*%"
+                    pesos_matches = list(re.finditer(pesos_pat, val_line))
+                    if pesos_matches:
+                        resumen.tna_pesos = float(
+                            pesos_matches[0].group(1).replace(",", ".")
+                        )
+                        if len(pesos_matches) > 1:
+                            resumen.tem_pesos = float(
+                                pesos_matches[1].group(1).replace(",", ".")
+                            )
+
+                    dolares_pat = r"Dólares:\s*([\d,]+)\s*%"
+                    dolares_matches = list(re.finditer(dolares_pat, val_line))
+                    if dolares_matches:
+                        resumen.tna_dolares = float(
+                            dolares_matches[0].group(1).replace(",", ".")
+                        )
+                        if len(dolares_matches) > 1:
+                            resumen.tem_dolares = float(
+                                dolares_matches[1].group(1).replace(",", ".")
+                            )
                     break
             break
 
